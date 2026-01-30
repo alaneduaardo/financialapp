@@ -11,8 +11,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // CONFIG - MUDA ISTO COM TEUS VALORES
-  const GOOGLE_SHEETS_ID = 'SEU_SHEET_ID_AQUI'; // Obtém do URL do Sheets
-  const GOOGLE_API_KEY = 'SEU_API_KEY_AQUI'; // Cria em console.cloud.google.com
+  const GOOGLE_SHEETS_ID = '12ey9XV86lB7slRvve8Y3r5XA4MsUgSqC0MBYAOSEnRg'; // Obtém do URL do Sheets
+  const GOOGLE_API_KEY = 'AIzaSyBbkj6-h-CGj2ZUabYejYwSg1ek6IDiWjU'; // Cria em console.cloud.google.com
 
   // Orçamento padrão
   const defaultBudget = {
