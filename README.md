@@ -1,15 +1,17 @@
 # 💰 Financial Tracker
 
-Dashboard financeiro profissional que lê dados do Google Sheets em tempo real.
+Dashboard financeiro profissional com autenticação segura (SSR) que lê dados do Google Sheets em tempo real.
 
 ## 📋 Funcionalidades
 
-- Dashboard interativo com métricas financeiras
-- Visualização de gastos por categoria (gráficos de pizza e barra)
-- Alertas automáticos de orçamento
-- Comparação de gastos vs orçamento
-- Listagem completa de transações
-- Integração com Google Sheets
+- 🔒 **Sistema de autenticação completo** (usuário e senha)
+- 🛡️ **SSR (Server-Side Rendering)** - credenciais protegidas no servidor
+- 📊 Dashboard interativo com métricas financeiras
+- 📈 Visualização de gastos por categoria (gráficos de pizza e barra)
+- ⚠️ Alertas automáticos de orçamento
+- 📉 Comparação de gastos vs orçamento
+- 📋 Listagem completa de transações
+- ☁️ Integração segura com Google Sheets API
 
 ## 🚀 Setup Local
 
@@ -27,7 +29,19 @@ Copie o arquivo `.env.example` para `.env.local` e preencha com suas credenciais
 cp .env.example .env.local
 ```
 
-Edite `.env.local` e adicione:
+Edite `.env.local` e configure:
+
+**Autenticação (Obrigatório):**
+- `AUTH_USERNAME`: Seu usuário de login
+- `AUTH_PASSWORD`: Sua senha (mínimo 8 caracteres)
+- `SESSION_SECRET`: Secret para criptografia (gere com comando abaixo)
+
+```bash
+# Gerar SESSION_SECRET
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Google Sheets (Obrigatório):**
 - `NEXT_PUBLIC_GOOGLE_SHEETS_ID`: ID do seu Google Sheet
 - `NEXT_PUBLIC_GOOGLE_API_KEY`: Sua API Key do Google Cloud
 
@@ -63,35 +77,72 @@ Para instruções detalhadas, consulte [docs/GUIDE_DEPLOYMENT_VERCEL.txt](docs/G
 ```
 financial-tracker/
 ├── pages/
-│   ├── _app.js          # Configuração global do app
-│   └── index.js         # Dashboard principal
+│   ├── _app.js                    # Configuração global do app
+│   ├── index.js                   # Dashboard principal (protegido com SSR)
+│   ├── login.js                   # Página de login
+│   └── api/
+│       ├── auth/
+│       │   ├── login.js          # API de autenticação
+│       │   ├── logout.js         # API de logout
+│       │   └── me.js             # API de verificação de sessão
+│       └── sheets/
+│           └── transactions.js   # API proxy para Google Sheets (protegido)
+├── lib/
+│   └── session.js                # Configuração de sessões seguras
 ├── styles/
-│   └── globals.css      # Estilos globais
-├── docs/                # Documentação
-├── .env.local           # Variáveis de ambiente (não commitado)
-├── .env.example         # Template de variáveis
-└── package.json         # Dependências
+│   └── globals.css               # Estilos globais
+├── docs/                         # Documentação
+│   ├── AUTHENTICATION_GUIDE.txt  # Guia completo de autenticação
+│   ├── GOOGLE_API_SETUP.txt      # Setup Google Sheets API
+│   └── GUIDE_DEPLOYMENT_VERCEL.txt
+├── .env.local                    # Variáveis de ambiente (NUNCA commitar!)
+├── .env.example                  # Template de variáveis
+└── package.json                  # Dependências
 ```
 
 ## 🛠️ Tecnologias
 
-- **Next.js** - Framework React
-- **Tailwind CSS** - Estilização
+- **Next.js 14** - Framework React com SSR
+- **iron-session** - Sessões seguras com criptografia AES-256
+- **Tailwind CSS** - Estilização moderna
 - **Recharts** - Gráficos interativos
 - **Lucide React** - Ícones
 - **Google Sheets API** - Fonte de dados
 
 ## 📖 Documentação
 
+- [**Guia de Autenticação Completo**](docs/AUTHENTICATION_GUIDE.txt) ⭐ **NOVO**
 - [Guia de Deployment Vercel](docs/GUIDE_DEPLOYMENT_VERCEL.txt)
 - [Setup Google API](docs/GOOGLE_API_SETUP.txt)
 - [Setup Completo Next.js](docs/setup_nextjs_completo.txt)
 
 ## 🔒 Segurança & Privacidade
 
-- Dados armazenados apenas no seu Google Sheet
-- API Key visível no frontend (use restrições de domínio no Google Cloud)
-- Nenhum servidor backend (100% frontend)
+### ✅ Sistema de Autenticação Implementado
+
+- 🔐 **Login obrigatório** com usuário e senha
+- 🛡️ **SSR (Server-Side Rendering)** - credenciais NUNCA expostas no frontend
+- 🍪 **Sessões seguras** com cookies httpOnly e criptografia AES-256
+- 🔑 **Google Sheets API protegida** - todas requisições passam pelo servidor
+- ⏰ **Sessões expiram** após 7 dias de inatividade
+- 🚫 **Proteção de rotas** - páginas inacessíveis sem autenticação
+
+### Arquitetura de Segurança
+
+1. **Frontend (Cliente):**
+   - Nenhuma credencial armazenada
+   - Apenas cookies de sessão criptografados
+   - Redirecionamento automático para login se não autenticado
+
+2. **Backend (API Routes):**
+   - Credenciais do Google Sheets protegidas no servidor
+   - Middleware de autenticação em todas as rotas sensíveis
+   - Validação de sessão em cada requisição
+
+3. **Dados:**
+   - Armazenados apenas no seu Google Sheet
+   - Acesso controlado por autenticação
+   - Nenhum dado persistido no servidor
 
 ## 📝 Licença
 

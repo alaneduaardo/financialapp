@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { ArrowUp, ArrowDown, AlertCircle, TrendingUp, Calendar } from 'lucide-react';
+import { ArrowUp, ArrowDown, AlertCircle, TrendingUp, Calendar, LogOut } from 'lucide-react';
+import { getSession } from '../lib/session';
 
-export default function Dashboard() {
+export default function Dashboard({ user }) {
+  const router = useRouter();
   const [transactions, setTransactions] = useState([]);
   const [budget, setBudget] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentMonth, setCurrentMonth] = useState('Jan');
   const [activeTab, setActiveTab] = useState('dashboard');
-
-  // CONFIG - MUDA ISTO COM TEUS VALORES
-  const GOOGLE_SHEETS_ID = '12ey9XV86lB7slRvve8Y3r5XA4MsUgSqC0MBYAOSEnRg'; // Obtém do URL do Sheets
-  const GOOGLE_API_KEY = 'AIzaSyBbkj6-h-CGj2ZUabYejYwSg1ek6IDiWjU'; // Cria em console.cloud.google.com
 
   // Orçamento padrão
   const defaultBudget = {
@@ -34,33 +33,21 @@ export default function Dashboard() {
     'Outros': 50
   };
 
-  // Carregar dados do Google Sheets
+  // Carregar dados do servidor (SSR protegido)
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Buscar aba "Transações"
-        const transUrl = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_ID}/values/Transações?key=${GOOGLE_API_KEY}`;
-        const transResponse = await fetch(transUrl);
-        const transData = await transResponse.json();
 
-        if (!transData.values) {
-          throw new Error('Não consegui ler a aba "Transações". Verifica se existe e está compartilhada.');
+        // Buscar dados da API route (credenciais protegidas no servidor)
+        const response = await fetch('/api/sheets/transactions');
+
+        if (!response.ok) {
+          throw new Error('Erro ao carregar dados do servidor');
         }
 
-        // Converter para objetos
-        const headers = transData.values[0];
-        const rows = transData.values.slice(1);
-        const transactions = rows.map(row => {
-          const obj = {};
-          headers.forEach((header, idx) => {
-            obj[header.trim()] = row[idx] || '';
-          });
-          return obj;
-        }).filter(t => t.Data); // Filtrar linhas vazias
-
-        setTransactions(transactions);
+        const data = await response.json();
+        setTransactions(data.transactions || []);
         setBudget(defaultBudget);
         setError(null);
       } catch (err) {
@@ -74,15 +61,18 @@ export default function Dashboard() {
       }
     };
 
-    if (GOOGLE_SHEETS_ID !== 'SEU_SHEET_ID_AQUI' && GOOGLE_API_KEY !== 'SEU_API_KEY_AQUI') {
-      fetchData();
-    } else {
-      setTransactions(getDemoData());
-      setBudget(defaultBudget);
-      setLoading(false);
-      setError('⚠️ Configura GOOGLE_SHEETS_ID e GOOGLE_API_KEY primeiro');
-    }
+    fetchData();
   }, []);
+
+  // Função de logout
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout');
+      router.push('/login');
+    } catch (err) {
+      console.error('Erro ao fazer logout:', err);
+    }
+  };
 
   // Dados demo para teste
   const getDemoData = () => [
@@ -185,9 +175,18 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-slate-900">💰 Financial Tracker</h1>
               <p className="text-slate-600 mt-1">Alan Eduardo - Controlo de Gastos</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-600">Dados atualizados em tempo real</p>
-              <p className="text-xs text-slate-500 mt-1">Conectado a Google Sheets</p>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-slate-600">🔒 Sessão segura</p>
+                <p className="text-xs text-slate-500 mt-1">Usuário: {user?.username}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
             </div>
           </div>
         </div>
@@ -456,50 +455,86 @@ export default function Dashboard() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">Configuração do Google Sheets</h2>
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">🔒 Segurança e Configuração</h2>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Google Sheets ID</label>
-                  <input
-                    type="text"
-                    value={GOOGLE_SHEETS_ID}
-                    readOnly
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-900 font-mono text-xs"
-                  />
-                  <p className="text-xs text-slate-600 mt-2">
-                    Encontra em: https://docs.google.com/spreadsheets/d/<strong>ESTE_ID_AQUI</strong>/edit
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-900 mb-2">✅ Credenciais Protegidas</h3>
+                  <p className="text-sm text-green-800">
+                    As credenciais do Google Sheets estão armazenadas de forma segura no servidor (SSR).
+                    Nenhuma informação sensível é exposta no frontend.
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Google API Key</label>
-                  <input
-                    type="password"
-                    value={GOOGLE_API_KEY}
-                    readOnly
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-900 font-mono text-xs"
-                  />
-                  <p className="text-xs text-slate-600 mt-2">
-                    Cria em: https://console.cloud.google.com
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">🛡️ Autenticação Ativa</h3>
+                  <p className="text-sm text-blue-800 mb-2">
+                    Você está autenticado como: <strong>{user?.username}</strong>
                   </p>
+                  <p className="text-xs text-blue-700">
+                    Todas as requisições são protegidas por sessão segura com cookies httpOnly.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-slate-900 mb-2">⚙️ Configuração do Servidor</h3>
+                  <p className="text-sm text-slate-700 mb-2">
+                    Para atualizar credenciais do Google Sheets, edite o arquivo <code className="bg-slate-200 px-2 py-1 rounded">.env.local</code> no servidor:
+                  </p>
+                  <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                    <li>NEXT_PUBLIC_GOOGLE_SHEETS_ID</li>
+                    <li>NEXT_PUBLIC_GOOGLE_API_KEY</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-bold text-blue-900 mb-2">📚 Como Configurar</h3>
+              <h3 className="font-bold text-blue-900 mb-2">📚 Configuração do Google Sheets</h3>
               <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
                 <li>Cria novo projeto em console.cloud.google.com</li>
                 <li>Ativa a API "Google Sheets API"</li>
                 <li>Cria uma chave de API (API Key)</li>
                 <li>Partilha o teu Google Sheet como "Público"</li>
-                <li>Copia o ID da URL do Sheet</li>
-                <li>Atualiza as variáveis no código</li>
+                <li>Adiciona credenciais no arquivo .env.local do servidor</li>
+                <li>Reinicia a aplicação para aplicar mudanças</li>
               </ol>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <h3 className="font-bold text-yellow-900 mb-2">⚠️ Informações de Segurança</h3>
+              <ul className="text-sm text-yellow-800 space-y-2 list-disc list-inside">
+                <li>Credenciais NUNCA são expostas no frontend</li>
+                <li>Todas as requisições passam por autenticação</li>
+                <li>Sessões expiram após 7 dias de inatividade</li>
+                <li>Use senhas fortes para acesso à aplicação</li>
+              </ul>
             </div>
           </div>
         )}
       </main>
     </div>
   );
+}
+
+// Proteger página com autenticação SSR
+export async function getServerSideProps({ req, res }) {
+  const session = await getSession(req, res);
+
+  // Se não estiver autenticado, redirecionar para login
+  if (!session.user) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  // Passar dados do usuário para o componente
+  return {
+    props: {
+      user: session.user,
+    },
+  };
 }

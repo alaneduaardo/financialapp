@@ -1,0 +1,207 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    GUIA DE AUTENTICAÇÃO - FINANCIAL TRACKER                    
+═══════════════════════════════════════════════════════════════════════════════
+
+🔒 SISTEMA DE AUTENTICAÇÃO IMPLEMENTADO
+
+O Financial Tracker agora possui um sistema completo de autenticação com SSR
+(Server-Side Rendering) para proteger suas credenciais do Google Sheets.
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 CONFIGURAÇÃO INICIAL
+═══════════════════════════════════════════════════════════════════════════════
+
+1. CONFIGURAR CREDENCIAIS DE LOGIN
+   
+   Edite o arquivo .env.local e defina:
+   
+   AUTH_USERNAME=seu_usuario
+   AUTH_PASSWORD=sua_senha_forte
+
+   ⚠️  IMPORTANTE: Use uma senha forte! Esta será a proteção da sua aplicação.
+
+2. GERAR SESSION_SECRET
+   
+   Execute no terminal:
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   
+   Copie o resultado e adicione ao .env.local:
+   SESSION_SECRET=resultado_aqui
+   
+   O SESSION_SECRET deve ter pelo menos 32 caracteres.
+
+3. INSTALAR DEPENDÊNCIAS
+   
+   npm install
+   
+   Isso instalará o iron-session (biblioteca de sessões seguras).
+
+4. INICIAR APLICAÇÃO
+   
+   npm run dev
+   
+   Acesse: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════════════════
+🛡️ COMO FUNCIONA A SEGURANÇA
+═══════════════════════════════════════════════════════════════════════════════
+
+1. AUTENTICAÇÃO OBRIGATÓRIA
+   - Ao acessar a aplicação, você será redirecionado para /login
+   - Login com usuário e senha definidos no .env.local
+   - Sessão válida por 7 dias
+
+2. CREDENCIAIS PROTEGIDAS (SSR)
+   - Google Sheets ID e API Key NUNCA são expostas no frontend
+   - Todas as requisições passam por API Routes protegidas
+   - Apenas usuários autenticados podem acessar dados
+
+3. SESSÕES SEGURAS
+   - Cookies httpOnly (não acessíveis via JavaScript)
+   - Criptografia AES-256 com iron-session
+   - Cookies seguros em produção (HTTPS only)
+
+4. PROTEÇÃO DE ROTAS
+   - Página principal (/) protegida com getServerSideProps
+   - API routes protegidas com middleware withAuth
+   - Logout automático em caso de sessão inválida
+
+═══════════════════════════════════════════════════════════════════════════════
+📁 ARQUITETURA DO SISTEMA
+═══════════════════════════════════════════════════════════════════════════════
+
+financialapp/
+├── pages/
+│   ├── index.js                    # Dashboard (protegido com SSR)
+│   ├── login.js                    # Página de login
+│   └── api/
+│       ├── auth/
+│       │   ├── login.js           # POST /api/auth/login
+│       │   ├── logout.js          # POST /api/auth/logout
+│       │   └── me.js              # GET /api/auth/me
+│       └── sheets/
+│           └── transactions.js    # GET /api/sheets/transactions (protegido)
+├── lib/
+│   └── session.js                 # Configuração iron-session + helpers
+└── .env.local                     # Credenciais (NUNCA commitar!)
+
+═══════════════════════════════════════════════════════════════════════════════
+🔄 FLUXO DE AUTENTICAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. PRIMEIRO ACESSO
+   Usuario acessa http://localhost:3000
+   └─> Não autenticado
+       └─> Redirecionado para /login
+           └─> Insere usuário e senha
+               └─> POST /api/auth/login
+                   └─> Cria sessão
+                       └─> Redirecionado para /
+
+2. CARREGAMENTO DO DASHBOARD
+   getServerSideProps verifica sessão
+   └─> Sessão válida
+       └─> Renderiza dashboard
+           └─> useEffect busca dados
+               └─> GET /api/sheets/transactions
+                   └─> Middleware verifica sessão
+                       └─> Busca dados do Google Sheets
+                           └─> Retorna para frontend
+
+3. LOGOUT
+   Usuario clica "Sair"
+   └─> POST /api/auth/logout
+       └─> Destroi sessão
+           └─> Redirecionado para /login
+
+═══════════════════════════════════════════════════════════════════════════════
+⚙️ VARIÁVEIS DE AMBIENTE
+═══════════════════════════════════════════════════════════════════════════════
+
+Arquivo: .env.local
+
+# Autenticação
+AUTH_USERNAME=admin                      # Seu usuário
+AUTH_PASSWORD=senha_forte_aqui           # Sua senha (min 8 caracteres)
+SESSION_SECRET=32+_caracteres_random     # Secret para cookies
+
+# Google Sheets (protegido no servidor)
+NEXT_PUBLIC_GOOGLE_SHEETS_ID=...        # ID do seu Google Sheet
+NEXT_PUBLIC_GOOGLE_API_KEY=...          # API Key do Google Cloud
+
+⚠️  NUNCA commite o arquivo .env.local para o Git!
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 DEPLOY EM PRODUÇÃO (VERCEL)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Push para GitHub (sem .env.local!)
+
+2. No dashboard da Vercel:
+   - Settings → Environment Variables
+   - Adicionar TODAS as variáveis do .env.local:
+     * AUTH_USERNAME
+     * AUTH_PASSWORD
+     * SESSION_SECRET
+     * NEXT_PUBLIC_GOOGLE_SHEETS_ID
+     * NEXT_PUBLIC_GOOGLE_API_KEY
+
+3. Deploy automático
+
+4. IMPORTANTE: Em produção, cookies serão secure (HTTPS only)
+
+═══════════════════════════════════════════════════════════════════════════════
+🔐 BOAS PRÁTICAS DE SEGURANÇA
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ FAZER:
+- Usar senhas fortes (min 12 caracteres, letras + números + símbolos)
+- Gerar SESSION_SECRET aleatório e único
+- Usar HTTPS em produção
+- Fazer backup das variáveis de ambiente
+- Mudar senha periodicamente
+- Fazer logout ao sair
+
+❌ NÃO FAZER:
+- Commitar .env.local para Git
+- Usar senhas fracas tipo "123456"
+- Compartilhar credenciais
+- Expor SESSION_SECRET publicamente
+- Reutilizar SESSION_SECRET de outros projetos
+
+═══════════════════════════════════════════════════════════════════════════════
+🐛 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ "Não autenticado" ao fazer login
+→ Verifica se AUTH_USERNAME e AUTH_PASSWORD estão corretos no .env.local
+→ Verifica se SESSION_SECRET está definido (min 32 caracteres)
+→ Reinicia o servidor: npm run dev
+
+❌ "Session secret must be at least 32 characters"
+→ Gera novo secret: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+→ Adiciona ao .env.local
+
+❌ Erro ao buscar dados do Google Sheets
+→ Verifica se NEXT_PUBLIC_GOOGLE_SHEETS_ID está correto
+→ Verifica se NEXT_PUBLIC_GOOGLE_API_KEY está correto
+→ Verifica se Google Sheet está compartilhado como público
+→ Verifica se Google Sheets API está ativada
+
+❌ Logout não funciona
+→ Limpa cookies do navegador
+→ Reinicia servidor
+
+❌ Em produção não funciona
+→ Verifica se TODAS as variáveis estão na Vercel
+→ Verifica logs em Vercel Dashboard
+
+═══════════════════════════════════════════════════════════════════════════════
+📚 RECURSOS ADICIONAIS
+═══════════════════════════════════════════════════════════════════════════════
+
+iron-session docs: https://github.com/vvo/iron-session
+Next.js API Routes: https://nextjs.org/docs/api-routes/introduction
+Next.js getServerSideProps: https://nextjs.org/docs/basic-features/data-fetching
+
+═══════════════════════════════════════════════════════════════════════════════
