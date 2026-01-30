@@ -1,0 +1,206 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║         GUIA DEPLOYMENT - FINANCIAL TRACKER EM VERCEL (€0)                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: Preparar Google Sheets (Base de dados)
+════════════════════════════════════════════════════════════════════════════════
+
+1. Criar novo Google Sheet em docs.google.com
+2. Criar 3 abas:
+   - "Transações" (Data, Descrição, Valor, Categoria, Mês)
+   - "Orçamento" (Categoria, Limite)
+   - "Categorias" (Referência)
+
+3. Preencher dados conforme instruções_google_sheets.txt
+
+4. Compartilhar:
+   - Clica "Share"
+   - Muda para "Anyone with the link can view"
+   - Copia o link
+
+5. Obter ID do Sheets:
+   - Link exemplo: https://docs.google.com/spreadsheets/d/ABC123XYZ/edit
+   - ID = ABC123XYZ (parte depois de /d/ e antes de /edit)
+   - Guardar este ID
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: Configurar Projeto React + Vercel
+════════════════════════════════════════════════════════════════════════════════
+
+OPÇÃO A: Usar Create React App (mais fácil para iniciante)
+─────────────────────────────────────────────────────────
+
+1. Abrir terminal/PowerShell
+2. Executar:
+   npx create-react-app financial-tracker
+   cd financial-tracker
+
+3. Instalar dependências:
+   npm install recharts
+
+4. Substituir conteúdo de src/App.jsx com código em financial_tracker_app.jsx
+
+5. Testar localmente:
+   npm start
+   (Abre http://localhost:3000)
+
+OPÇÃO B: Usar Next.js (recomendado, mais profissional)
+─────────────────────────────────────────────────────
+
+1. Abrir terminal
+2. Executar:
+   npx create-next-app@latest financial-tracker
+   cd financial-tracker
+
+3. Instalar recharts:
+   npm install recharts
+
+4. Criar app/page.jsx com o código
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: Adicionar Google Sheets API (para ler dados)
+════════════════════════════════════════════════════════════════════════════════
+
+NOTA: Versão atual usa localStorage (mais simples, sem backend).
+Para versão com Google Sheets automático, precisas de:
+
+1. Criar projeto em console.cloud.google.com
+2. Ativar Google Sheets API
+3. Criar credenciais OAuth 2.0
+4. Adicionar chave ao ficheiro .env
+
+Alternativa SIMPLES (Recomendado):
+─────────────────────────────────
+
+1. Usar CSV Upload (já está implementado)
+2. Dados guardados em localStorage (persiste no browser)
+3. Exportar dados manualmente se necessário
+
+Esta opção é mais simples e funciona bem para uso pessoal.
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 4: Deploy em Vercel (€0)
+════════════════════════════════════════════════════════════════════════════════
+
+1. Criar conta em vercel.com (GitHub/Google login)
+
+2. Ir para Dashboard → "New Project"
+
+3. Conectar repositório GitHub:
+   a. Ir a github.com → criar novo repositório "financial-tracker"
+   b. Fazer upload do projeto:
+      git init
+      git add .
+      git commit -m "Initial commit"
+      git branch -M main
+      git remote add origin https://github.com/SEU_USER/financial-tracker.git
+      git push -u origin main
+
+4. De volta em Vercel → "Import Git Repository"
+   - Selecionar repositório "financial-tracker"
+   - Clicar "Import"
+
+5. Vercel vai detectar Next.js/React
+   - Frameworks: Automatic
+   - Build Command: npm run build (ou automático)
+   - Output: Automático
+
+6. Clicar "Deploy"
+
+7. Esperar 30-60 segundos
+
+8. App vai estar em: https://financial-tracker-XXXX.vercel.app
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 5: Usar a App
+════════════════════════════════════════════════════════════════════════════════
+
+WORKFLOW MENSAL:
+────────────────
+
+1. Cada mês:
+   a. Extrair CSV do Bankinter (Download → CSV)
+   b. Organizar conforme template (Data, Desc, Valor, Cat, Mês)
+   c. Copiar e colar no Google Sheets aba "Transações"
+   
+   OU usar Upload CSV na app (mais rápido)
+
+2. Abrir app em https://financial-tracker-XXXX.vercel.app
+
+3. Clicar em "📤 Importar CSV"
+   - Upload do ficheiro CSV
+   - App vai categorizar automaticamente
+
+4. Ir para "📊 Dashboard"
+   - Selecionar mês
+   - Ver métricas, gráficos, alertas
+   - Comparar vs orçamento
+
+5. Se ultrapassar limite:
+   - ⚠️ Alerta automático
+   - Revisar gastos
+   - Ajustar orçamento se necessário
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 6: Atualizar App (se necessário)
+════════════════════════════════════════════════════════════════════════════════
+
+1. Editar código localmente
+2. Fazer commit e push:
+   git add .
+   git commit -m "Descrição mudança"
+   git push
+
+3. Vercel vai redeploy automaticamente (~30s)
+
+════════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════════════
+
+❌ "npm command not found"
+→ Instalar Node.js de nodejs.org
+
+❌ "Port 3000 already in use"
+→ Usar porta diferente: npm start -- --port 3001
+
+❌ "Erro no Deploy"
+→ Ver logs em Vercel Dashboard
+→ Garantir que package.json tem as dependências
+
+❌ "Dados não aparecem"
+→ Verificar localStorage (Console → Application → localStorage)
+→ Fazer upload CSV novamente
+
+════════════════════════════════════════════════════════════════════════════════
+
+SEGURANÇA & PRIVACIDADE
+════════════════════════════════════════════════════════════════════════════════
+
+✅ Dados guardados APENAS em localStorage (computador)
+✅ SEM servidor, SEM logs, SEM backup automático
+✅ Ninguém tem acesso aos teus dados
+✅ App funciona offline (depois de primeira carga)
+
+⚠️  Se apagares browser cache/dados → perdes histórico
+💡  Guardar backup: Exportar dados periodicamente
+
+════════════════════════════════════════════════════════════════════════════════
+
+PRÓXIMOS PASSOS
+════════════════════════════════════════════════════════════════════════════════
+
+1. ✅ Preparar Google Sheets (base de dados)
+2. ✅ Deploy app em Vercel
+3. ✅ Testar com dados de janeiro
+4. ✅ Usar mensalmente para tracking
+
+SUPORTE:
+- Qualquer dúvida nos steps, contactar
+
+════════════════════════════════════════════════════════════════════════════════

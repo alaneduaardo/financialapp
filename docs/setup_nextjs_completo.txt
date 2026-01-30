@@ -1,0 +1,137 @@
+# ARQUIVO 1: package.json
+{
+  "name": "financial-tracker",
+  "version": "1.0.0",
+  "description": "Financial Tracker - Controlo de Gastos",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^14.0.0",
+    "recharts": "^2.10.3",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0",
+    "postcss": "^8.4.31",
+    "autoprefixer": "^10.4.16"
+  }
+}
+
+# ARQUIVO 2: next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+}
+
+module.exports = nextConfig
+
+# ARQUIVO 3: tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        slate: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+
+# ARQUIVO 4: postcss.config.js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+# ARQUIVO 5: pages/_app.js
+import '../styles/globals.css'
+
+export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+
+# ARQUIVO 6: styles/globals.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-gradient-to-br from-slate-50 to-slate-100;
+}
+
+# ARQUIVO 7: .env.local (LOCAL - NÃO COMMIT)
+NEXT_PUBLIC_GOOGLE_SHEETS_ID=SEU_SHEET_ID_AQUI
+NEXT_PUBLIC_GOOGLE_API_KEY=SEU_API_KEY_AQUI
+
+# ARQUIVO 8: .env.example (TEMPLATE - COMMIT)
+NEXT_PUBLIC_GOOGLE_SHEETS_ID=
+NEXT_PUBLIC_GOOGLE_API_KEY=
+
+# ARQUIVO 9: .gitignore
+node_modules
+.next
+out
+dist
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.vercel
+
+# ARQUIVO 10: README.md
+# Financial Tracker
+
+Dashboard financeiro profissional que lê dados do Google Sheets em tempo real.
+
+## Setup
+
+1. `npm install`
+2. Configurar `.env.local` com credenciais Google
+3. `npm run dev`
+4. Abrir http://localhost:3000
+
+## Deploy Vercel
+
+1. Push para GitHub
+2. Conectar repositório em Vercel
+3. Adicionar variáveis de ambiente
+4. Deploy automático
+
+## Configuração Google Sheets
+
+1. Criar projeto em console.cloud.google.com
+2. Ativar Google Sheets API
+3. Criar API Key
+4. Partilhar Sheet como público
+5. Adicionar ID e API Key ao `.env.local`

@@ -1,0 +1,181 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║        GUIA: OBTER GOOGLE SHEETS ID + API KEY (Opção C)                       ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+PASSO 1: Obter Google Sheets ID
+════════════════════════════════════════════════════════════════════════════════
+
+1. Abre o teu Google Sheet em sheets.google.com
+2. Vê o URL na barra de endereço:
+   https://docs.google.com/spreadsheets/d/ABC123XYZ456/edit#gid=0
+
+3. Copia a parte entre /d/ e /edit:
+   👉 ABC123XYZ456 <- ESTE É O SEU SHEETS ID
+
+4. Guarda este valor (vai precisar depois)
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 2: Criar Projeto Google Cloud
+════════════════════════════════════════════════════════════════════════════════
+
+1. Vai para https://console.cloud.google.com
+2. Clica em "Select a Project" (canto superior esquerdo)
+3. Clica "NEW PROJECT"
+4. Nome: "Financial Tracker"
+5. Clica "CREATE"
+6. Espera 30 segundos até estar criado
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 3: Ativar Google Sheets API
+════════════════════════════════════════════════════════════════════════════════
+
+1. No console Google Cloud, procura "Google Sheets API"
+   - Clica na barra de pesquisa no topo
+   - Escreve "sheets"
+   - Clica em "Google Sheets API"
+
+2. Clica "ENABLE" (botão azul)
+3. Espera a ativação (~1 minuto)
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 4: Criar API Key
+════════════════════════════════════════════════════════════════════════════════
+
+1. No console Google Cloud:
+   - Vai para "APIs & Services" > "Credentials"
+   - Clica "+ CREATE CREDENTIALS"
+   - Seleciona "API Key"
+
+2. Copia o valor gerado
+   👉 AIzaSyDxxx... <- ESTE É O SEU API KEY
+
+3. Guarda este valor
+
+SEGURANÇA:
+⚠️  Esta API Key vai estar no código frontend (visível no browser)
+⚠️  Por isso, restringe em console.cloud.google.com:
+   - Clica na chave
+   - "API restrictions" → Seleciona apenas "Google Sheets API"
+   - "HTTP referrers" → Adiciona domínio Vercel (depois de deploy)
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 5: Partilhar Google Sheet Como Público
+════════════════════════════════════════════════════════════════════════════════
+
+1. Abre o teu Google Sheet
+2. Clica "Share" (canto superior direito)
+3. Muda a permissão para "Anyone with the link can view"
+4. Clica "Share"
+
+⚠️  IMPORTANTE: Tem que estar como público para a app conseguir ler!
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 6: Adicionar ao Código
+════════════════════════════════════════════════════════════════════════════════
+
+Abre financial_tracker_nextjs.jsx e encontra estas linhas:
+
+const GOOGLE_SHEETS_ID = 'SEU_SHEET_ID_AQUI';
+const GOOGLE_API_KEY = 'SEU_API_KEY_AQUI';
+
+Substitui com os teus valores:
+
+const GOOGLE_SHEETS_ID = 'ABC123XYZ456';  // Sheets ID do PASSO 1
+const GOOGLE_API_KEY = 'AIzaSyDxxx...';   // API Key do PASSO 4
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 7: Testar Localmente
+════════════════════════════════════════════════════════════════════════════════
+
+1. Abre terminal
+2. Vai para pasta do projeto
+3. Executa:
+   npm install
+   npm run dev
+
+4. Abre http://localhost:3000
+5. Deve aparecer os dados do teu Google Sheet
+
+❌ Se não aparecer:
+   - Verifica se SHEETS_ID está correto
+   - Verifica se API_KEY está correto
+   - Verifica se Sheet está compartilhado como público
+   - Verifica se Google Sheets API está ativada em console.cloud.google.com
+   - Abre DevTools (F12) > Console para ver erros
+
+════════════════════════════════════════════════════════════════════════════════
+
+PASSO 8: Deploy em Vercel
+════════════════════════════════════════════════════════════════════════════════
+
+1. Cria repositório GitHub (ver GUIDE_DEPLOYMENT_VERCEL.txt)
+
+2. Em Vercel Dashboard:
+   - Vai para projeto
+   - Settings → Environment Variables
+   - Adiciona:
+     NEXT_PUBLIC_GOOGLE_SHEETS_ID = ABC123XYZ456
+     NEXT_PUBLIC_GOOGLE_API_KEY = AIzaSyDxxx...
+
+3. Redeploy automático (~2 minutos)
+
+4. App está ao vivo em https://financial-tracker-XXXX.vercel.app
+
+════════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════════════
+
+❌ "Failed to fetch data"
+→ Sheets ID ou API Key incorretos
+→ Ou Sheet não está público
+
+❌ "Access denied"
+→ Google Sheets API não está ativada
+→ Vai a console.cloud.google.com e ativa
+
+❌ "CORS error"
+→ Restrições de origem
+→ Verifica se API Key está bem configurada nas restricoes
+
+❌ "Tabela vazia"
+→ Sheets não tem dados
+→ Verifica se abas têm nome exato: "Transações", "Orçamento"
+→ Verifica se dados estão preenchidos
+
+════════════════════════════════════════════════════════════════════════════════
+
+FICHEIROS NECESSÁRIOS
+════════════════════════════════════════════════════════════════════════════════
+
+Pasta do projeto deve ter:
+
+financial-tracker/
+├── pages/
+│   ├── _app.js
+│   └── index.js (conteúdo de financial_tracker_nextjs.jsx)
+├── styles/
+│   └── globals.css
+├── .env.local (CONFIG LOCAL)
+├── package.json
+├── next.config.js
+├── tailwind.config.js
+├── postcss.config.js
+├── .gitignore
+└── README.md
+
+════════════════════════════════════════════════════════════════════════════════
+
+PRÓXIMO PASSO
+════════════════════════════════════════════════════════════════════════════════
+
+Depois de conseguires ver os dados localmente, segue:
+GUIDE_DEPLOYMENT_VERCEL.txt para fazer deploy online
+
+════════════════════════════════════════════════════════════════════════════════
